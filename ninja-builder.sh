@@ -188,6 +188,7 @@ compile()
     esac
     echo "Compile Ninja for $TARGET"
     $ZIG c++ -target "$TARGET" "${TARGET_CFLAGS[@]}" "${TARGET_SOURCES[@]}" -o "$BUILD/$OUTPUT"
+    gzip -9 -f "$BUILD/$OUTPUT"
 }
 
 mkdir -p $BUILD
