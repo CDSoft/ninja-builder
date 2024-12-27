@@ -191,10 +191,13 @@ compile()
                     EXT=""
                     ;;
     esac
-    echo "Compile Ninja for $TARGET"
-    mkdir -p "$BUILD/$OUTPUT"
-    $ZIG c++ -target "$ZIG_TARGET" "${TARGET_CFLAGS[@]}" "${TARGET_SOURCES[@]}" -o "$BUILD/$OUTPUT/ninja$EXT"
-    tar czf "$BUILD/$OUTPUT.tar.gz" "$BUILD/$OUTPUT/ninja$EXT" --transform="s,$BUILD/$OUTPUT/,,"
+    if ! [ -f "$BUILD/$OUTPUT.tar.gz" ] || [ ninja-builder.sh -nt "$BUILD/$OUTPUT.tar.gz" ]
+    then
+        echo "Compile Ninja for $TARGET"
+        mkdir -p "$BUILD/$OUTPUT"
+        $ZIG c++ -target "$ZIG_TARGET" "${TARGET_CFLAGS[@]}" "${TARGET_SOURCES[@]}" -o "$BUILD/$OUTPUT/ninja$EXT"
+        tar czf "$BUILD/$OUTPUT.tar.gz" "$BUILD/$OUTPUT/ninja$EXT" --transform="s,$BUILD/$OUTPUT/,,"
+    fi
 }
 
 mkdir -p $BUILD
