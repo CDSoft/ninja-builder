@@ -22,6 +22,8 @@
 
 set -eu
 
+RELEASE=r1
+
 ZIG_VERSION="0.13.0"
 ZIG_PATH=~/.local/opt/zig
 ZIG=$ZIG_PATH/$ZIG_VERSION/zig
@@ -170,25 +172,29 @@ clone_ninja()
 compile()
 {
     local TARGET="$1"
+    local ZIG_TARGET="$2"
     local OUTPUT
-    OUTPUT="ninja-$(echo "$TARGET" | awk -F- '{print $2"-"$1"-"$3}')"
+    OUTPUT="ninja-build-$RELEASE-$TARGET"
     local TARGET_CFLAGS=( "${CFLAGS[@]}" )
     local TARGET_SOURCES=( "${SOURCES[@]}" )
     case "$TARGET" in
         (*windows*) TARGET_CFLAGS+=( "${WIN32_CFLAGS[@]}" )
                     TARGET_SOURCES+=( "${WIN32_SOURCES[@]}" )
-                    OUTPUT="$OUTPUT.exe"
+                    EXT=".exe"
                     ;;
         (*linux*)   TARGET_CFLAGS+=( "${POSIX_CFLAGS[@]}" "${LINUX_CFLAGS[@]}" )
                     TARGET_SOURCES+=( "${POSIX_SOURCES[@]}" )
+                    EXT=""
                     ;;
         (*macos*)   TARGET_CFLAGS+=( "${POSIX_CFLAGS[@]}" "${MACOS_CFLAGS[@]}" )
                     TARGET_SOURCES+=( "${POSIX_SOURCES[@]}" )
+                    EXT=""
                     ;;
     esac
     echo "Compile Ninja for $TARGET"
-    $ZIG c++ -target "$TARGET" "${TARGET_CFLAGS[@]}" "${TARGET_SOURCES[@]}" -o "$BUILD/$OUTPUT"
-    gzip -9 -f "$BUILD/$OUTPUT"
+    mkdir -p "$BUILD/$OUTPUT"
+    $ZIG c++ -target "$ZIG_TARGET" "${TARGET_CFLAGS[@]}" "${TARGET_SOURCES[@]}" -o "$BUILD/$OUTPUT/ninja$EXT"
+    tar czf "$BUILD/$OUTPUT.tar.gz" "$BUILD/$OUTPUT/ninja$EXT" --transform="s,$BUILD/$OUTPUT/,,"
 }
 
 mkdir -p $BUILD
@@ -196,11 +202,11 @@ detect_os
 install_zig
 clone_ninja
 
-compile x86_64-linux-gnu &
-compile x86_64-linux-musl &
-compile aarch64-linux-gnu &
-compile aarch64-linux-musl &
-compile x86_64-macos-none &
-compile aarch64-macos-none &
-compile x86_64-windows-gnu &
+compile linux-x86_64        x86_64-linux-gnu   &
+compile linux-x86_64-musl   x86_64-linux-musl  &
+compile linux-aarch64       aarch64-linux-gnu  &
+compile linux-aarch64-musl  aarch64-linux-musl &
+compile macos-x86_64        x86_64-macos-none  &
+compile macos-aarch64       aarch64-macos-none &
+compile windows-x86_64      x86_64-windows-gnu &
 wait
