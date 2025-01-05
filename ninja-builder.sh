@@ -32,7 +32,35 @@ NINJA_VERSION=1.12.1
 NINJA_URL=https://github.com/ninja-build/ninja/archive/refs/tags/v$NINJA_VERSION.tar.gz
 NINJA_REPO=ninja-$NINJA_VERSION
 
-BUILD=.build
+: "${PREFIX:=$HOME/.local}"
+
+BUILD_ROOT=.build
+
+CLEAN=false
+INSTALL=false
+COMPILER=zig
+COMPILER_VERSION=$ZIG_VERSION
+for arg in "$@"
+do
+    case "$arg" in
+        clean)      CLEAN=true ;;
+        install)    INSTALL=true ;;
+        gcc)        COMPILER=gcc
+                    COMPILER_VERSION=$(gcc --version | awk '{print $3; exit}')
+                    ;;
+        clang)      COMPILER=clang
+                    COMPILER_VERSION=$(clang --version | awk '{print $3; exit}')
+                    ;;
+        zig)        COMPILER=zig
+                    COMPILER_VERSION=$ZIG_VERSION
+                    ;;
+        *)          echo "invalid parameter: $arg"
+                    exit 1
+                    ;;
+    esac
+done
+
+BUILD=$BUILD_ROOT/ninja-$NINJA_VERSION-$COMPILER-$COMPILER_VERSION
 
 SOURCES=(
     "$NINJA_REPO"/src/build_log.cc
@@ -171,8 +199,8 @@ clone_ninja()
 
 compile()
 {
-    local TARGET="$1"
-    local ZIG_TARGET="$2"
+    local COMPILER="$1"
+    local TARGET="$2"
     local OUTPUT
     OUTPUT="ninja-build-$RELEASE-$TARGET"
     local TARGET_CFLAGS=( "${CFLAGS[@]}" )
@@ -193,23 +221,39 @@ compile()
     esac
     if ! [ -f "$BUILD/$OUTPUT.tar.gz" ] || [ ninja-builder.sh -nt "$BUILD/$OUTPUT.tar.gz" ]
     then
-        echo "Compile Ninja for $TARGET"
+        echo "Compile Ninja for $TARGET with $COMPILER"
         mkdir -p "$BUILD/$OUTPUT"
-        $ZIG c++ -target "$ZIG_TARGET" "${TARGET_CFLAGS[@]}" "${TARGET_SOURCES[@]}" -o "$BUILD/$OUTPUT/ninja$EXT"
+        $COMPILER "${TARGET_CFLAGS[@]}" "${TARGET_SOURCES[@]}" -o "$BUILD/$OUTPUT/ninja$EXT"
         tar czf "$BUILD/$OUTPUT.tar.gz" "$BUILD/$OUTPUT/ninja$EXT" --transform="s,$BUILD/$OUTPUT/,,"
     fi
 }
 
-mkdir -p $BUILD
+$CLEAN && rm -rf $BUILD_ROOT
+mkdir -p "$BUILD"
 detect_os
-install_zig
 clone_ninja
 
-compile linux-x86_64        x86_64-linux-gnu   &
-compile linux-x86_64-musl   x86_64-linux-musl  &
-compile linux-aarch64       aarch64-linux-gnu  &
-compile linux-aarch64-musl  aarch64-linux-musl &
-compile macos-x86_64        x86_64-macos-none  &
-compile macos-aarch64       aarch64-macos-none &
-compile windows-x86_64      x86_64-windows-gnu &
-wait
+case "$COMPILER" in
+    gcc)
+        compile g++ "$OS-$ARCH"
+        ;;
+    clang)
+        compile clang++ "$OS-$ARCH"
+        ;;
+    zig)
+        install_zig
+        compile "$ZIG c++ -target x86_64-linux-gnu"   linux-x86_64       &
+        compile "$ZIG c++ -target x86_64-linux-musl"  linux-x86_64-musl  &
+        compile "$ZIG c++ -target aarch64-linux-gnu"  linux-aarch64      &
+        compile "$ZIG c++ -target aarch64-linux-musl" linux-aarch64-musl &
+        compile "$ZIG c++ -target x86_64-macos-none"  macos-x86_64       &
+        compile "$ZIG c++ -target aarch64-macos-none" macos-aarch64      &
+        compile "$ZIG c++ -target x86_64-windows-gnu" windows-x86_64     &
+        wait
+        ;;
+esac
+
+if $INSTALL
+then
+    install -v -D -t "$PREFIX/bin" "$BUILD"/"ninja-build-$RELEASE-$OS-$ARCH"/ninja*
+fi
