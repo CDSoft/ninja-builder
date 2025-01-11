@@ -22,7 +22,7 @@
 
 set -eu
 
-RELEASE=r1
+RELEASE=2025-01-11
 
 ZIG_VERSION="0.13.0"
 ZIG_PATH=~/.local/opt/zig
@@ -38,7 +38,7 @@ BUILD_ROOT=.build
 
 CLEAN=false
 INSTALL=false
-COMPILER=zig
+COMPILER=gcc
 COMPILER_VERSION=$ZIG_VERSION
 for arg in "$@"
 do
@@ -225,6 +225,13 @@ compile()
         mkdir -p "$BUILD/$OUTPUT"
         $COMPILER "${TARGET_CFLAGS[@]}" "${TARGET_SOURCES[@]}" -o "$BUILD/$OUTPUT/ninja$EXT"
         tar czf "$BUILD/$OUTPUT.tar.gz" "$BUILD/$OUTPUT/ninja$EXT" --transform="s,$BUILD/$OUTPUT/,,"
+        cat <<EOF > "$BUILD/README.md"
+# Ninja $RELEASE
+
+| Program | Version | Documentation |
+| ------- | ------- | ------------- |
+| Ninja | [$NINJA_VERSION]($NINJA_URL) | <https://ninja-build.org/> |
+EOF
     fi
 }
 
