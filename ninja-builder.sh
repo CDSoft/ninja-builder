@@ -193,8 +193,8 @@ install_zig()
 clone_ninja()
 {
     [ -d "$NINJA_REPO" ] && return
-    [ -f "$BUILD/ninja-$NINJA_VERSION.tar.gz" ] || download $NINJA_URL $BUILD/ninja-$NINJA_VERSION.tar.gz
-    tar xzf $BUILD/ninja-$NINJA_VERSION.tar.gz "$NINJA_REPO/src/*" "$NINJA_REPO/COPYING" "$NINJA_REPO/README.md"
+    [ -f "$BUILD/ninja-$NINJA_VERSION.tar.gz" ] || download $NINJA_URL "$BUILD/ninja-$NINJA_VERSION.tar.gz"
+    tar xzf "$BUILD/ninja-$NINJA_VERSION.tar.gz" "$NINJA_REPO/src/*" "$NINJA_REPO/COPYING" "$NINJA_REPO/README.md"
 }
 
 compile()
