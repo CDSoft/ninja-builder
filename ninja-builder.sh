@@ -22,9 +22,9 @@
 
 set -eu
 
-RELEASE=2025-03-05
+RELEASE=2025-03-28
 
-ZIG_VERSION="0.14.0"
+ZIG_VERSION=0.14.0
 ZIG_PATH=~/.local/opt/zig
 ZIG=$ZIG_PATH/$ZIG_VERSION/zig
 
@@ -185,7 +185,6 @@ install_zig()
     rm "$(dirname "$ZIG")/$ZIG_ARCHIVE"
 }
 
-
 clone_ninja()
 {
     [ -d "$NINJA_REPO" ] && return
@@ -245,13 +244,14 @@ case "$COMPILER" in
         ;;
     zig)
         install_zig
-        compile "$ZIG c++ -target x86_64-linux-gnu"   linux-x86_64       &
-        compile "$ZIG c++ -target x86_64-linux-musl"  linux-x86_64-musl  &
-        compile "$ZIG c++ -target aarch64-linux-gnu"  linux-aarch64      &
-        compile "$ZIG c++ -target aarch64-linux-musl" linux-aarch64-musl &
-        compile "$ZIG c++ -target x86_64-macos-none"  macos-x86_64       &
-        compile "$ZIG c++ -target aarch64-macos-none" macos-aarch64      &
-        compile "$ZIG c++ -target x86_64-windows-gnu" windows-x86_64     &
+        compile "$ZIG c++ -target x86_64-linux-gnu"    linux-x86_64        &
+        compile "$ZIG c++ -target x86_64-linux-musl"   linux-x86_64-musl   &
+        compile "$ZIG c++ -target aarch64-linux-gnu"   linux-aarch64       &
+        compile "$ZIG c++ -target aarch64-linux-musl"  linux-aarch64-musl  &
+        compile "$ZIG c++ -target x86_64-macos-none"   macos-x86_64        &
+        compile "$ZIG c++ -target aarch64-macos-none"  macos-aarch64       &
+        compile "$ZIG c++ -target x86_64-windows-gnu"  windows-x86_64      &
+        compile "$ZIG c++ -target aarch64-windows-gnu" windows-aarch64     &
         wait
         ;;
 esac
