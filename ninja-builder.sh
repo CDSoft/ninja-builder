@@ -16,7 +16,7 @@
 # along with ninja-builder.  If not, see <https://www.gnu.org/licenses/>.
 #
 # For further information about ninja-builder you can visit
-# https://github.com/CDSoft/ninja-builder
+# https://codeberg.org/cdsoft/ninja-builder
 
 # Minimal script to cross-compile Ninja with zig
 
