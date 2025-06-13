@@ -22,9 +22,9 @@
 
 set -eu
 
-RELEASE=2025-03-28
+RELEASE=2025-06-13
 
-ZIG_VERSION=0.14.0
+ZIG_VERSION=0.14.1
 ZIG_PATH=~/.local/opt/zig
 ZIG=$ZIG_PATH/$ZIG_VERSION/zig
 
@@ -175,7 +175,7 @@ install_zig()
 {
     [ -x "$ZIG" ] && return
 
-    local ZIG_ARCHIVE="zig-$OS-$ARCH-$ZIG_VERSION.tar.xz"
+    local ZIG_ARCHIVE="zig-$ARCH-$OS-$ZIG_VERSION.tar.xz"
     local ZIG_URL="https://ziglang.org/download/$ZIG_VERSION/$ZIG_ARCHIVE"
 
     mkdir -p "$(dirname "$ZIG")"
