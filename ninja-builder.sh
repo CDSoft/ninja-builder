@@ -22,13 +22,13 @@
 
 set -eu
 
-RELEASE=2025-06-13
+RELEASE=2025-06-18
 
 ZIG_VERSION=0.14.1
 ZIG_PATH=~/.local/opt/zig
 ZIG=$ZIG_PATH/$ZIG_VERSION/zig
 
-NINJA_VERSION=1.12.1
+NINJA_VERSION=1.13.0
 NINJA_URL=https://github.com/ninja-build/ninja/archive/refs/tags/v$NINJA_VERSION.tar.gz
 NINJA_REPO=ninja-$NINJA_VERSION
 
@@ -39,66 +39,70 @@ BUILD_ROOT=.build
 CLEAN=false
 INSTALL=false
 COMPILER=gcc
-COMPILER_VERSION=$ZIG_VERSION
+COMPILER_VERSION=X
 for arg in "$@"
 do
     case "$arg" in
         clean)      CLEAN=true ;;
         install)    INSTALL=true ;;
-        gcc)        COMPILER=gcc
-                    COMPILER_VERSION=$(gcc --version | awk '{print $3; exit}')
-                    ;;
-        clang)      COMPILER=clang
-                    COMPILER_VERSION=$(clang --version | awk '{print $3; exit}')
-                    ;;
-        zig)        COMPILER=zig
-                    COMPILER_VERSION=$ZIG_VERSION
-                    ;;
+        gcc)        COMPILER=gcc ;;
+        clang)      COMPILER=clang ;;
+        zig)        COMPILER=zig ;;
         *)          echo "invalid parameter: $arg"
                     exit 1
                     ;;
     esac
 done
+case $COMPILER in
+    gcc)    COMPILER_VERSION=$(gcc --version | awk '{print $3; exit}') ;;
+    clang)  COMPILER_VERSION=$(clang --version | awk '{print $3; exit}') ;;
+    zig)    COMPILER_VERSION=$ZIG_VERSION ;;
+esac
 
 BUILD=$BUILD_ROOT/ninja-$NINJA_VERSION-$COMPILER-$COMPILER_VERSION
 
 SOURCES=(
-    "$NINJA_REPO"/src/build_log.cc
     "$NINJA_REPO"/src/build.cc
+    "$NINJA_REPO"/src/build_log.cc
     "$NINJA_REPO"/src/clean.cc
     "$NINJA_REPO"/src/clparser.cc
-    "$NINJA_REPO"/src/dyndep.cc
-    "$NINJA_REPO"/src/dyndep_parser.cc
     "$NINJA_REPO"/src/debug_flags.cc
+    "$NINJA_REPO"/src/depfile_parser.cc
     "$NINJA_REPO"/src/deps_log.cc
     "$NINJA_REPO"/src/disk_interface.cc
+    "$NINJA_REPO"/src/dyndep.cc
+    "$NINJA_REPO"/src/dyndep_parser.cc
     "$NINJA_REPO"/src/edit_distance.cc
+    "$NINJA_REPO"/src/elide_middle.cc
     "$NINJA_REPO"/src/eval_env.cc
     "$NINJA_REPO"/src/graph.cc
     "$NINJA_REPO"/src/graphviz.cc
+    "$NINJA_REPO"/src/jobserver.cc
     "$NINJA_REPO"/src/json.cc
+    "$NINJA_REPO"/src/lexer.cc
     "$NINJA_REPO"/src/line_printer.cc
     "$NINJA_REPO"/src/manifest_parser.cc
     "$NINJA_REPO"/src/metrics.cc
     "$NINJA_REPO"/src/missing_deps.cc
+    "$NINJA_REPO"/src/ninja.cc
     "$NINJA_REPO"/src/parser.cc
+    "$NINJA_REPO"/src/real_command_runner.cc
     "$NINJA_REPO"/src/state.cc
-    "$NINJA_REPO"/src/status.cc
+    "$NINJA_REPO"/src/status_printer.cc
     "$NINJA_REPO"/src/string_piece_util.cc
     "$NINJA_REPO"/src/util.cc
     "$NINJA_REPO"/src/version.cc
-    "$NINJA_REPO"/src/depfile_parser.cc
-    "$NINJA_REPO"/src/lexer.cc
-    "$NINJA_REPO"/src/ninja.cc
 )
 WIN32_SOURCES=(
-    "$NINJA_REPO"/src/subprocess-win32.cc
     "$NINJA_REPO"/src/includes_normalize-win32.cc
+    "$NINJA_REPO"/src/jobserver-win32.cc
+    "$NINJA_REPO"/src/minidump-win32.cc
     "$NINJA_REPO"/src/msvc_helper-win32.cc
     "$NINJA_REPO"/src/msvc_helper_main-win32.cc
-    "$NINJA_REPO"/src/minidump-win32.cc
+    "$NINJA_REPO"/src/subprocess-win32.cc
 )
 POSIX_SOURCES=(
+    "$NINJA_REPO"/src/jobserver-posix.cc
     "$NINJA_REPO"/src/subprocess-posix.cc
 )
 
@@ -109,19 +113,23 @@ CFLAGS=(
     -Wno-inconsistent-missing-override
     -fno-rtti
     -fno-exceptions
-    -std=c++11
+    -std=c++17
+    -fvisibility=hidden
     -pipe
     -O2
     -fdiagnostics-color
     -s
     -DNDEBUG
 )
+case $COMPILER in
+    gcc)    CFLAGS+=( -Wno-alloc-size-larger-than ) ;;
+esac
 
 WIN32_CFLAGS=(
     #-D_WIN32_WINNT=0x0601
     -D__USE_MINGW_ANSI_STDIO=1
     -DUSE_PPOLL
-    -flto
+    -flto=auto
 )
 
 POSIX_CFLAGS=(
@@ -132,7 +140,7 @@ POSIX_CFLAGS=(
 
 LINUX_CFLAGS=(
     -DUSE_PPOLL
-    -flto
+    -flto=auto
 )
 
 MACOS_CFLAGS=(
