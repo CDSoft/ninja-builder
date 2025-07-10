@@ -28,7 +28,7 @@ ZIG_VERSION=0.14.1
 ZIG_PATH=~/.local/opt/zig
 ZIG=$ZIG_PATH/$ZIG_VERSION/zig
 
-NINJA_VERSION=1.13.0
+NINJA_VERSION=1.13.1
 NINJA_URL=https://github.com/ninja-build/ninja/archive/refs/tags/v$NINJA_VERSION.tar.gz
 NINJA_REPO=ninja-$NINJA_VERSION
 
