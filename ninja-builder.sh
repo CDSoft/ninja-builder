@@ -22,13 +22,13 @@
 
 set -eu
 
-RELEASE=2025-10-19
+RELEASE=2025-11-20
 
 ZIG_VERSION=0.15.2
 ZIG_PATH=~/.local/opt/zig
 ZIG=$ZIG_PATH/$ZIG_VERSION/zig
 
-NINJA_VERSION=1.13.1
+NINJA_VERSION=1.13.2
 NINJA_URL=https://github.com/ninja-build/ninja/archive/refs/tags/v$NINJA_VERSION.tar.gz
 NINJA_REPO=ninja-$NINJA_VERSION
 
@@ -161,7 +161,7 @@ download()
         echo "ERROR: curl not found"
         exit 1
     fi
-    curl -L "$URL" -o "$OUTPUT" --progress-bar --fail
+    curl -SL "$URL" -o "$OUTPUT" --progress-bar --fail
 }
 
 detect_os()
