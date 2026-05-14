@@ -22,9 +22,9 @@
 
 set -eu
 
-RELEASE=2025-11-20
+RELEASE=2026-05-14
 
-ZIG_VERSION=0.15.2
+ZIG_VERSION=0.16.0
 ZIG_PATH=~/.local/opt/zig
 ZIG=$ZIG_PATH/$ZIG_VERSION/zig
 
@@ -129,7 +129,6 @@ WIN32_CFLAGS=(
     #-D_WIN32_WINNT=0x0601
     -D__USE_MINGW_ANSI_STDIO=1
     -DUSE_PPOLL
-    -flto=auto
 )
 
 POSIX_CFLAGS=(
@@ -140,7 +139,6 @@ POSIX_CFLAGS=(
 
 LINUX_CFLAGS=(
     -DUSE_PPOLL
-    -flto=auto
 )
 
 MACOS_CFLAGS=(
